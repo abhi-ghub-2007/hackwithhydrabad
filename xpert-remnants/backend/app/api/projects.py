@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-from app.models.models import Project, KnowledgeRisk, Decision, Incident, DecisionMemory, Expert
-from app.schemas.schemas import ProjectResponse, KnowledgeRiskResponse, KnowledgeMapResponse, KnowledgeMapNode, KnowledgeMapEdge
+from app.models.models import Project, KnowledgeRisk, Decision, Incident, DecisionMemory, Expert, ProjectModule
+from app.schemas.schemas import ProjectResponse, KnowledgeRiskResponse, KnowledgeMapResponse, KnowledgeMapNode, KnowledgeMapEdge, ProjectModuleResponse
 from app.services.knowledge_risk_service import knowledge_risk_service
 
 router = APIRouter()
@@ -13,11 +13,14 @@ router = APIRouter()
 def get_projects(
     domain: str = Query(None),
     status: str = Query(None),
+    canonical_only: bool = Query(False),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
     q = db.query(Project)
+    if canonical_only:
+        q = q.filter(Project.id.in_([10, 11, 12, 13, 14]))
     if domain:
         q = q.filter(Project.domain == domain)
     if status:
@@ -30,6 +33,13 @@ def get_project(project_id: int, db: Session = Depends(get_db)):
     if not prj:
         raise HTTPException(status_code=404, detail="Project not found")
     return prj
+
+@router.get("/projects/{project_id}/modules", response_model=List[ProjectModuleResponse])
+def get_project_modules(project_id: int, db: Session = Depends(get_db)):
+    prj = db.query(Project).filter(Project.id == project_id).first()
+    if not prj:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return db.query(ProjectModule).filter(ProjectModule.project_id == project_id).all()
 
 @router.get("/projects/{project_id}/knowledge-risks", response_model=List[KnowledgeRiskResponse])
 def get_project_knowledge_risks(project_id: int, db: Session = Depends(get_db)):

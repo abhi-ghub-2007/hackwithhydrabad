@@ -118,12 +118,19 @@ export const api = {
   },
 
   // Projects & Knowledge Map
-  async getProjects() {
-    return await request('/api/projects');
+  async getProjects(params = {}) {
+    const search = new URLSearchParams();
+    if (params.canonicalOnly || params.canonical_only) search.append('canonical_only', 'true');
+    const qs = search.toString() ? `?${search.toString()}` : '';
+    return await request(`/api/projects${qs}`);
   },
 
   async getProject(id) {
     return await request(`/api/projects/${id}`);
+  },
+
+  async getProjectModules(id) {
+    return await request(`/api/projects/${id}/modules`);
   },
 
   async getProjectRisks(id) {
@@ -148,8 +155,13 @@ export const api = {
   },
 
   // Experts & People
-  async getExperts() {
-    return await request('/api/experts');
+  async getExperts(params = {}) {
+    const search = new URLSearchParams();
+    if (params.projectId || params.project_id) search.append('project_id', params.projectId || params.project_id);
+    if (params.status) search.append('status', params.status);
+    if (params.department) search.append('department', params.department);
+    const qs = search.toString() ? `?${search.toString()}` : '';
+    return await request(`/api/experts${qs}`);
   },
 
   async getExpert(id) {

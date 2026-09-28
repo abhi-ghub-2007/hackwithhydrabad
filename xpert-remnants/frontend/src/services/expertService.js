@@ -4,55 +4,35 @@ export const ALL_KNOWLEDGE_SCOPE = {
   id: null,
   name: 'All organizational knowledge',
   role: 'Company-wide Memory',
-  department: 'Organization'
+  department: 'Organization',
+  organization: 'Microsoft'
 };
 
-let cachedExperts = null;
-
 export const expertService = {
-  async getExperts() {
-    if (cachedExperts) {
-      return cachedExperts;
-    }
-
+  async getExperts(params = {}) {
     try {
-      const data = await api.getExperts();
+      const data = await api.getExperts(params);
       const list = data.map((exp) => ({
         id: exp.id,
+        projectId: exp.project_id,
         name: exp.person?.full_name || `Expert #${exp.id}`,
         role: exp.role || 'Senior Architect',
         department: exp.department || 'Engineering',
         yearsOfExperience: exp.years_of_experience,
-        status: exp.status || 'FORMER_EMPLOYEE'
+        status: exp.status || 'FORMER_EMPLOYEE',
+        expertise: exp.expertise,
+        biography: exp.biography
       }));
-
-      // Ensure Raj Mehta is represented if Arjun is present (for demo continuity)
-      const hasRaj = list.some((e) => e.name.toLowerCase().includes('raj'));
-      if (!hasRaj && list.length > 0) {
-        // Add Raj Mehta as alias or primary representation for the Payment Architect
-        list.unshift({
-          id: 1,
-          name: 'Raj Mehta',
-          role: 'Lead Architect (Payments & Messaging)',
-          department: 'Backend Engineering',
-          yearsOfExperience: 8,
-          status: 'FORMER_EMPLOYEE'
-        });
-      }
-
-      cachedExperts = list;
       return list;
     } catch (err) {
       console.warn('Failed to load experts from backend, using default roster:', err);
-      const fallbackList = [
-        { id: 1, name: 'Raj Mehta', role: 'Principal Architect (Payments)', department: 'Backend Engineering' },
-        { id: 2, name: 'Priya Sharma', role: 'Senior Platform Engineer', department: 'Platform Infrastructure' },
-        { id: 3, name: 'Vikram Rao', role: 'Principal Security Architect', department: 'Security & Auth' },
-        { id: 4, name: 'Ananya Iyer', role: 'Staff Data Engineer', department: 'Data Platform' },
-        { id: 5, name: 'Rohan Sen', role: 'Lead Payment Systems Architect', department: 'Financial Core' }
+      return [
+        { id: 1, name: 'Raj Mehta', role: 'Principal Architect (Payments)', department: 'Backend Engineering', projectId: 10 },
+        { id: 2, name: 'Priya Sharma', role: 'Senior Platform Engineer', department: 'Platform Infrastructure', projectId: 11 },
+        { id: 3, name: 'Vikram Rao', role: 'Principal Security Architect', department: 'Security & Auth', projectId: 12 },
+        { id: 4, name: 'Ananya Iyer', role: 'Staff Data Engineer', department: 'Data Platform', projectId: 13 },
+        { id: 5, name: 'Rohan Sen', role: 'Lead Payment Systems Architect', department: 'Financial Core', projectId: 14 }
       ];
-      cachedExperts = fallbackList;
-      return fallbackList;
     }
   },
 
@@ -69,7 +49,7 @@ export const expertService = {
       (e) =>
         e.name.toLowerCase().includes(q) ||
         e.role.toLowerCase().includes(q) ||
-        e.department.toLowerCase().includes(q)
+        (e.department && e.department.toLowerCase().includes(q))
     );
   }
 };

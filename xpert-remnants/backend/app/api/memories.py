@@ -154,20 +154,29 @@ async def extract_memories_from_document(
             "memory_type": "decision"
         }
 
+    def safe_str(val, default=""):
+        if val is None:
+            return default
+        if isinstance(val, list):
+            return "; ".join(str(x) for x in val)
+        if isinstance(val, dict):
+            return json.dumps(val)
+        return str(val)
+
     # 3. Create DecisionMemory in DRAFT status
     draft_mem = DecisionMemory(
         organization_id=1,
         project_id=doc_in.project_id,
         expert_id=doc_in.expert_id,
-        problem=data.get("problem", "Extracted issue"),
-        context=data.get("context", doc_in.title),
-        options_considered=data.get("options_considered", "Evaluated alternatives"),
-        decision=data.get("decision", "Operational decision"),
-        reasoning=data.get("reasoning", "Engineering reasoning"),
-        action_taken=data.get("action_taken", "Implemented according to SOP"),
-        impact=data.get("impact", "Observed outcome"),
-        lessons_learned=data.get("lessons_learned", "Preserved lesson"),
-        memory_type=data.get("memory_type", "decision"),
+        problem=safe_str(data.get("problem"), "Extracted issue"),
+        context=safe_str(data.get("context"), doc_in.title),
+        options_considered=safe_str(data.get("options_considered"), "Evaluated alternatives"),
+        decision=safe_str(data.get("decision"), "Operational decision"),
+        reasoning=safe_str(data.get("reasoning"), "Engineering reasoning"),
+        action_taken=safe_str(data.get("action_taken"), "Implemented according to SOP"),
+        impact=safe_str(data.get("impact"), "Observed outcome"),
+        lessons_learned=safe_str(data.get("lessons_learned"), "Preserved lesson"),
+        memory_type=safe_str(data.get("memory_type"), "decision"),
         status="DRAFT",  # Section 23: AI-extracted memories cannot become trusted automatically
         verification_status="UNVERIFIED",
         source_type="DOCUMENT_EXTRACTION",

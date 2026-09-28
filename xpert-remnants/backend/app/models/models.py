@@ -54,6 +54,7 @@ class Expert(Base):
     id = Column(Integer, primary_key=True, index=True)
     person_id = Column(Integer, ForeignKey("people.id"), nullable=False)
     organization_id = Column(Integer, ForeignKey("organizations.id"), nullable=False)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True)
     role = Column(String(100), nullable=False)  # e.g., Principal Software Architect
     department = Column(String(100), nullable=False)  # Engineering, Payments, Platform
     years_of_experience = Column(Integer, default=5)
@@ -66,6 +67,7 @@ class Expert(Base):
 
     person = relationship("Person", back_populates="expert_profile")
     organization = relationship("Organization", back_populates="experts")
+    project = relationship("Project", backref="experts")
     memories = relationship("DecisionMemory", back_populates="expert")
     decisions = relationship("Decision", back_populates="expert")
 
@@ -134,6 +136,15 @@ class DecisionMemory(Base):
     outcome_score = Column(Float, default=1.0)
     hindsight_memory_id = Column(String(255), nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    # Decision Evolution & Provenance Fields (Antigravity 3.8 Flash)
+    decision_status = Column(String(50), default="ACTIVE")  # ACTIVE, REJECTED, SUPERSEDED, HISTORICAL
+    effective_at = Column(String(50), nullable=True)        # Effective date string e.g. 2026-09-28
+    supersedes_memory_id = Column(Integer, ForeignKey("decision_memories.id"), nullable=True)
+    change_reason = Column(Text, nullable=True)             # Why the decision changed
+    changed_by_user_id = Column(String(100), nullable=True) # Who changed it (e.g., current authorized user)
+    change_type = Column(String(50), nullable=True)         # REQUIREMENTS_CHANGE, DIRECTIVE, EVALUATION
+    is_current = Column(Boolean, default=True)              # Whether this is the active decision for the topic
 
     organization = relationship("Organization", back_populates="memories")
     project = relationship("Project", back_populates="memories")
@@ -291,4 +302,60 @@ class Feedback(Base):
     decision_memory_id = Column(Integer, ForeignKey("decision_memories.id"), nullable=True)
     hindsight_memory_id = Column(String(255), nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
+class ProjectModule(Base):
+    __tablename__ = "project_modules"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    technology = Column(String(255), nullable=True)
+    dependencies = Column(Text, nullable=True)
+    risks = Column(Text, nullable=True)
+    current_state = Column(String(100), default="ACTIVE")
+    provenance = Column(String(100), default="VERIFIED_PUBLIC")
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    project = relationship("Project", backref="modules")
+
+
+class KnowledgeUpdate(Base):
+    __tablename__ = "knowledge_updates"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True)
+    update_type = Column(String(100), default="DECISION_CHANGE")  # DECISION_CHANGE, ARCHITECTURE_CHANGE, OUTCOME, CORRECTION
+    old_state = Column(Text, nullable=True)
+    new_state = Column(Text, nullable=False)
+    reason = Column(Text, nullable=True)
+    actor = Column(String(255), default="current_user")
+    effective_at = Column(String(50), nullable=True)
+    confidence = Column(Float, default=1.0)
+    source = Column(String(100), default="user_dialogue")
+    provenance = Column(String(100), default="USER_UPDATE")
+    related_decision_id = Column(Integer, ForeignKey("decision_memories.id"), nullable=True)
+    related_memory_id = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    project = relationship("Project")
+
+
+class LearningEvent(Base):
+    __tablename__ = "learning_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(String(255), nullable=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True)
+    event_type = Column(String(100), nullable=False)  # DECISION, CORRECTION, OUTCOME, LESSON, FEEDBACK
+    source = Column(String(100), default="user_dialogue")
+    content = Column(Text, nullable=False)
+    confidence = Column(Float, default=1.0)
+    promotion_status = Column(String(50), default="PERSISTED")  # EPHEMERAL, CANDIDATE, CONFIRMED, PERSISTED, SUPERSEDED
+    promoted_decision_id = Column(Integer, ForeignKey("decision_memories.id"), nullable=True)
+    promoted_memory_id = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    project = relationship("Project")
 

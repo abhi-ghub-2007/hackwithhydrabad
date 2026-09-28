@@ -45,12 +45,17 @@ class MemoryBatchProcessor:
                     "context": m.get("context", ""),
                     "metadata": {
                         "id": str(m.get("id")),
-                        "project_id": str(m.get("project_id")),
-                        "expert_id": str(m.get("expert_id")),
+                        "project_id": str(m.get("project_id", "")),
+                        "expert_id": str(m.get("expert_id", "")),
+                        "memory_id": str(m.get("memory_id") or m.get("hindsight_memory_id") or m.get("source_id") or m.get("id")),
                         "memory_type": str(m.get("memory_type", "decision")),
+                        "occurred_at": str(m.get("occurred_at", "")),
+                        "technology": str(m.get("technology", "")),
+                        "confidence": str(m.get("confidence") or m.get("outcome_score", 0.9)),
+                        "verification_status": str(m.get("verification_status", "VERIFIED")),
                         "status": str(m.get("status", "ACTIVE"))
                     },
-                    "tags": [m.get("memory_type", "decision"), "enterprise_memory"]
+                    "tags": [str(m.get("memory_type", "decision")), "enterprise_memory"]
                 })
 
             try:

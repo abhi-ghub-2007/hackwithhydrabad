@@ -18,6 +18,79 @@
   gap: var(--space-2);
 }
 
+.composer-context-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  padding: 3px 12px;
+  border-radius: var(--radius-full);
+  align-self: flex-start;
+  box-shadow: var(--shadow-sm);
+}
+
+.composer-context-icon {
+  color: var(--color-accent);
+}
+
+.composer-context-text {
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
+
+.composer-prompts-row {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.composer-prompts-row::-webkit-scrollbar {
+  display: none;
+}
+
+.prompts-scroll-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  padding: 2px 0;
+}
+
+.prompts-sparkle-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-accent);
+  padding-right: 2px;
+}
+
+.context-prompt-pill {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: 4px 10px;
+  font-size: 0.76rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.context-prompt-pill:hover {
+  background: var(--color-bg-elevated);
+  border-color: var(--color-accent);
+  color: var(--color-text-primary);
+  transform: translateY(-1px);
+}
+
 .composer-pill-box {
   width: 100%;
   background: var(--color-bg-surface);

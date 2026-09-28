@@ -174,6 +174,36 @@ class HindsightService:
         self.create_or_get_bank(target_bank)
         retained_ids = []
 
+        if self.client and hasattr(self.client, "retain_batch"):
+            try:
+                formatted_items = []
+                for item in items:
+                    safe_meta = {}
+                    if item.get("metadata"):
+                        for k, v in item["metadata"].items():
+                            if v is not None:
+                                safe_meta[str(k)] = str(v)
+                    mem_id = safe_meta.get("memory_id") or safe_meta.get("id") or f"mem-{int(datetime.utcnow().timestamp() * 1000)}"
+                    retained_ids.append(str(mem_id))
+                    formatted_items.append({
+                        "content": item.get("content", ""),
+                        "context": item.get("context", ""),
+                        "metadata": safe_meta,
+                        "tags": item.get("tags", ["batch_import", "decision_memory"]),
+                        "document_id": str(mem_id)
+                    })
+                self.client.retain_batch(bank_id=target_bank, items=formatted_items, retain_async=True)
+                return {
+                    "bank_id": target_bank,
+                    "count": len(retained_ids),
+                    "memory_ids": retained_ids,
+                    "status": "batch_retained",
+                    "mode": "cloud"
+                }
+            except Exception as e:
+                logger.error(f"Live Hindsight retain_batch failed: {e}. Falling back to sequential retain.")
+                retained_ids = []
+
         for item in items:
             content = item.get("content", "")
             context = item.get("context", "")
@@ -186,7 +216,8 @@ class HindsightService:
             "bank_id": target_bank,
             "count": len(retained_ids),
             "memory_ids": retained_ids,
-            "status": "batch_retained"
+            "status": "batch_retained",
+            "mode": "cloud" if self.client else "local_fallback"
         }
 
     def recall_memories(
@@ -217,10 +248,16 @@ class HindsightService:
                     units = resp.results
 
                 for u in units:
+                    score = 0.85
+                    if hasattr(u, "scores") and u.scores:
+                        score = getattr(u.scores, "final", None) or getattr(u.scores, "reranker", 0.85)
+                    elif hasattr(u, "score") and u.score is not None:
+                        score = u.score
+
                     results.append({
                         "id": getattr(u, "id", "mem-live"),
-                        "content": getattr(u, "content", str(u)),
-                        "score": getattr(u, "score", 0.85),
+                        "content": getattr(u, "content", getattr(u, "text", str(u))),
+                        "score": score,
                         "metadata": getattr(u, "metadata", {}),
                         "context": getattr(u, "context", "")
                     })

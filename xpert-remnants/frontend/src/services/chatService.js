@@ -183,7 +183,16 @@ export const chatService = {
       const sources = (response.sources || []).map((src, index) => {
         let title = 'Historical Record';
         let type = 'Record';
-        if (src.startsWith('DEC')) {
+        if (src === 'PUBLIC-KNOWLEDGE') {
+          type = 'Public Knowledge';
+          title = 'General Technical Industry Knowledge';
+        } else if (src === 'SYS-CONFIG') {
+          type = 'System';
+          title = 'System Configuration & Capabilities';
+        } else if (src.includes('ACT')) {
+          type = 'Active Decision';
+          title = 'Current Active Project Decision';
+        } else if (src.startsWith('DEC')) {
           type = 'Decision';
           title = response.previous_decision ? response.previous_decision.substring(0, 50) + '...' : 'Architectural Decision';
         } else if (src.startsWith('INC')) {

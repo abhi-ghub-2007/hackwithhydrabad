@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowUp, Loader2 } from 'lucide-react';
+import { ArrowUp, Loader2, Sparkles, Building2 } from 'lucide-react';
 import './MessageComposer.css';
 
 export function MessageComposer({
@@ -7,7 +7,8 @@ export function MessageComposer({
   externalText = '',
   setExternalText,
   isLoading = false,
-  activeExpert = null
+  activeExpert = null,
+  activeProject = null
 }) {
   const [text, setText] = useState('');
   const textareaRef = useRef(null);
@@ -52,15 +53,80 @@ export function MessageComposer({
     }
   };
 
+  const handlePromptClick = (promptText) => {
+    if (!isLoading) {
+      onSendMessage(promptText);
+    }
+  };
+
+  // Section 47 contextual prompts
+  const getContextualPrompts = () => {
+    if (activeExpert?.id) {
+      return [
+        "What did this expert work on?",
+        "What problems did they solve?",
+        "What would they check first?",
+        "What mistakes should we avoid?",
+        "What lessons did they leave?"
+      ];
+    } else if (activeProject?.id) {
+      return [
+        "What are the current architectural risks?",
+        "What decisions are active?",
+        "What problems were encountered before?",
+        "What should the team be careful about?",
+        "We are stuck on a compatibility issue. What should we check?"
+      ];
+    } else {
+      return [
+        "Which database is used?",
+        "Why did we switch?",
+        "List all experts",
+        "Active experts?",
+        "Which is better, hidden coupling or explicit interfaces?"
+      ];
+    }
+  };
+
+  const prompts = getContextualPrompts();
+
   const placeholderText = activeExpert?.id
     ? `Ask about ${activeExpert.name}'s decisions, warnings, or code history...`
-    : `Ask about your organization's history...`;
+    : (activeProject?.id
+        ? `Ask about ${activeProject.name}'s architecture, decisions, or incidents...`
+        : `Ask about your organization's history...`);
 
   const canSubmit = text.trim().length > 0 && !isLoading;
+
+  const breadcrumbContext = `Microsoft / ${activeProject ? activeProject.name : 'All Projects'} / ${activeExpert?.id ? activeExpert.name : 'All Experts'}`;
 
   return (
     <div className="composer-container">
       <div className="composer-inner">
+        {/* Section 46 Context Breadcrumb Header */}
+        <div className="composer-context-bar">
+          <Building2 size={12} className="composer-context-icon" />
+          <span className="composer-context-text">{breadcrumbContext}</span>
+        </div>
+
+        {/* Section 47 Contextual Ready-Made Prompts */}
+        <div className="composer-prompts-row">
+          <div className="prompts-scroll-container">
+            <span className="prompts-sparkle-label"><Sparkles size={11} /> Suggested:</span>
+            {prompts.map((p, idx) => (
+              <button
+                key={idx}
+                type="button"
+                className="context-prompt-pill"
+                onClick={() => handlePromptClick(p)}
+                disabled={isLoading}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit} className="composer-pill-box">
           <textarea
             ref={textareaRef}

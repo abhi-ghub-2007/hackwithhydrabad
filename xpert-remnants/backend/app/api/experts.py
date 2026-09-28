@@ -10,13 +10,16 @@ router = APIRouter()
 
 @router.get("/experts", response_model=List[ExpertResponse])
 def get_experts(
+    project_id: int = Query(None),
     department: str = Query(None),
     status: str = Query(None),
     skip: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=100),
+    limit: int = Query(100, ge=1, le=200),
     db: Session = Depends(get_db)
 ):
     q = db.query(Expert)
+    if project_id:
+        q = q.filter(Expert.project_id == project_id)
     if department:
         q = q.filter(Expert.department == department)
     if status:

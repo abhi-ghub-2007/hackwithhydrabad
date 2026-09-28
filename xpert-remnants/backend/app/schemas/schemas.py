@@ -44,6 +44,7 @@ class ExpertResponse(ExpertBase):
     id: int
     person_id: int
     organization_id: int
+    project_id: Optional[int] = None
     person: Optional[PersonResponse] = None
     model_config = ConfigDict(from_attributes=True)
 
@@ -54,6 +55,19 @@ class ProjectBase(BaseModel):
     business_context: Optional[str] = None
     status: str = "ACTIVE"
     criticality: str = "HIGH"
+
+class ProjectModuleResponse(BaseModel):
+    id: int
+    project_id: int
+    name: str
+    description: Optional[str] = None
+    technology: Optional[str] = None
+    dependencies: Optional[str] = None
+    risks: Optional[str] = None
+    current_state: str = "ACTIVE"
+    provenance: str = "VERIFIED_PUBLIC"
+    created_at: Optional[datetime.datetime] = None
+    model_config = ConfigDict(from_attributes=True)
 
 class ProjectResponse(ProjectBase):
     id: int
@@ -185,11 +199,12 @@ class AskRequest(BaseModel):
     project_id: Optional[int] = None
     expert_id: Optional[int] = None
     context_hint: Optional[str] = None
+    conversation_id: Optional[str] = None
 
 class AskResponse(BaseModel):
     query: str
     answer: str
-    historical_match_score: str  # High, Medium, Low
+    historical_match_score: str  # High, Medium, Low, Meta, Direct, OpenKnowledge
     relevant_experiences: List[Dict[str, Any]]
     what_happened: str
     previous_decision: str
@@ -201,6 +216,12 @@ class AskResponse(BaseModel):
     sources: List[str]
     memory_bank_id: str
     decision_memory_id: Optional[int] = None
+    # Evolution & Conversational Additions (Antigravity 3.8 Flash)
+    intent: Optional[str] = None
+    source_classification: Optional[str] = None
+    decision_evolution: Optional[Dict[str, Any]] = None
+    pending_decision: Optional[Dict[str, Any]] = None
+    conversation_id: Optional[str] = None
 
 class FeedbackRequest(BaseModel):
     ask_query: str

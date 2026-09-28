@@ -9,6 +9,7 @@ export function useChat() {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeExpert, setActiveExpert] = useState(ALL_KNOWLEDGE_SCOPE);
+  const [activeProject, setActiveProject] = useState(null);
   const [backendStatus, setBackendStatus] = useState({ loading: true, online: false, data: null });
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
@@ -32,9 +33,21 @@ export function useChat() {
     chatService.saveChats(chats);
   }, [chats]);
 
+  const selectProject = useCallback((project) => {
+    setActiveProject(project || null);
+    if (project && activeExpert?.projectId && activeExpert.projectId !== project.id) {
+      setActiveExpert(ALL_KNOWLEDGE_SCOPE);
+    }
+  }, [activeExpert]);
+
   const selectExpert = useCallback((expert) => {
     setActiveExpert(expert || ALL_KNOWLEDGE_SCOPE);
-  }, []);
+    if (expert && expert.projectId && (!activeProject || activeProject.id !== expert.projectId)) {
+      api.getProject(expert.projectId).then((p) => {
+        if (p) setActiveProject(p);
+      }).catch(() => {});
+    }
+  }, [activeProject]);
 
   const startNewChat = useCallback(() => {
     setActiveChatId(null);
@@ -87,7 +100,10 @@ export function useChat() {
     try {
       const askRes = await chatService.askQuestion(queryText, {
         expertId: activeExpert?.id,
-        contextHint: activeExpert?.id ? `Focus on decisions from ${activeExpert.name}` : null
+        projectId: activeProject?.id,
+        contextHint: activeExpert?.id
+          ? `Focus on decisions from ${activeExpert.name}`
+          : (activeProject?.id ? `Focus on project ${activeProject.name}` : null)
       });
 
       let botMsg;
@@ -168,6 +184,8 @@ export function useChat() {
     isLoading,
     activeExpert,
     selectExpert,
+    activeProject,
+    selectProject,
     backendStatus,
     isMobileSidebarOpen,
     startNewChat,

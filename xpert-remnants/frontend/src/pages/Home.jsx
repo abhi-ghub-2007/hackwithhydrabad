@@ -14,6 +14,8 @@ export function Home() {
     isLoading,
     activeExpert,
     selectExpert,
+    activeProject,
+    selectProject,
     backendStatus,
     startNewChat,
     selectChat,
@@ -34,6 +36,8 @@ export function Home() {
       onNewChat={startNewChat}
       activeExpert={activeExpert}
       onSelectExpert={selectExpert}
+      activeProject={activeProject}
+      onSelectProject={selectProject}
       backendStatus={backendStatus}
     >
       <div className="home-content-container">
@@ -52,6 +56,7 @@ export function Home() {
           setExternalText={setExternalPromptText}
           isLoading={isLoading}
           activeExpert={activeExpert}
+          activeProject={activeProject}
         />
       </div>
     </AppShell>

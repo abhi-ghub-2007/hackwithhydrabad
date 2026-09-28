@@ -14,6 +14,8 @@ export function AppShell({
   onNewChat,
   activeExpert,
   onSelectExpert,
+  activeProject,
+  onSelectProject,
   backendStatus = { online: true, loading: false },
   children
 }) {
@@ -74,6 +76,8 @@ export function AppShell({
             <ExpertSelector
               activeExpert={activeExpert}
               onSelectExpert={onSelectExpert}
+              activeProject={activeProject}
+              onSelectProject={onSelectProject}
             />
           </div>
 
