@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from app.core.config import settings
-from app.db.database import Base, engine, SessionLocal
+from app.db.database import Base, engine, SessionLocal, run_migrations
 from app.models.models import Organization
 from app.scripts.seed_database import seed_database
 from app.services.hindsight_service import hindsight_service
@@ -25,8 +25,9 @@ from app.api import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: ensure tables exist and seed initial demo data if empty
+    # Startup: ensure tables exist, run schema migrations, and seed initial demo data if empty
     Base.metadata.create_all(bind=engine)
+    run_migrations(engine)
     db = SessionLocal()
     try:
         org = db.query(Organization).filter(Organization.slug == "northstar-india").first()

@@ -85,3 +85,72 @@ button {
     display: none !important;
   }
 }
+
+/* =========================================================
+   LIGHT MODE: SECONDARY PLATFORM TOOLS & FEATURE PAGES TUNING
+   Eliminates murky backgrounds, color-mixing, and illegible text
+   ========================================================= */
+[data-theme="light"] .diagnostic-card,
+[data-theme="light"] .metrics-summary-card,
+[data-theme="light"] .control-card,
+[data-theme="light"] .review-card,
+[data-theme="light"] .empty-queue-card,
+[data-theme="light"] .memory-card,
+[data-theme="light"] .search-box,
+[data-theme="light"] .project-card,
+[data-theme="light"] .project-hero-card,
+[data-theme="light"] .module-card,
+[data-theme="light"] .metric-card,
+[data-theme="light"] .risk-summary-card,
+[data-theme="light"] .risk-card,
+[data-theme="light"] .replay-header-card,
+[data-theme="light"] .handoff-form-card,
+[data-theme="light"] .capture-form,
+[data-theme="light"] .mode-toggle-card {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04) !important;
+  backdrop-filter: none !important;
+}
+
+[data-theme="light"] .metric-critical {
+  background: #fef2f2 !important;
+  border-color: #fecaca !important;
+}
+
+[data-theme="light"] .diag-body {
+  border-top-color: #f1f5f9 !important;
+}
+
+[data-theme="light"] .diag-row {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .profile-select,
+[data-theme="light"] .decision-select,
+[data-theme="light"] select,
+[data-theme="light"] input[type="text"],
+[data-theme="light"] input[type="search"],
+[data-theme="light"] textarea {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .mode-btn.active {
+  background: #4f46e5 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25) !important;
+}
+
+[data-theme="light"] .demo-prefill-btn {
+  background: #eef2ff !important;
+  border-color: #c7d2fe !important;
+  color: #4338ca !important;
+}
+
+[data-theme="light"] .demo-prefill-btn:hover {
+  background: #e0e7ff !important;
+  color: #3730a3 !important;
+}
+
