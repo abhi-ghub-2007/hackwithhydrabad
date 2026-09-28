@@ -1,0 +1,39 @@
+# Environment variables - NEVER COMMIT SENSITIVE DATA
+**/.env
+**/.env.*
+!**/.env.example
+*.env
+.env
+
+# Dependencies
+**/node_modules/
+node_modules/
+
+# Python
+**/__pycache__/
+__pycache__/
+*.py[cod]
+*$py.class
+**/.pytest_cache/
+.pytest_cache/
+**/venv/
+venv/
+**/.venv/
+.venv/
+
+# Build artifacts
+**/dist/
+dist/
+**/build/
+build/
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE and system files
+.DS_Store
+.idea/
+.vscode/
+.uix/
