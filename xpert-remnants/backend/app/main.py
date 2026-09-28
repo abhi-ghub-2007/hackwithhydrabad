@@ -29,9 +29,9 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
-        org = db.query(Organization).filter(Organization.slug == "northstar-india").first()
+        org = db.query(Organization).first()
         if not org:
-            print("[Startup] Empty database detected. Seeding Northstar Technologies India dataset...")
+            print("[Startup] Empty database detected. Seeding initial dataset...")
             seed_database(profile_name=settings.DATASET_PROFILE, force=False)
     finally:
         db.close()
