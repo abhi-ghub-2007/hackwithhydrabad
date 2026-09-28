@@ -19,6 +19,7 @@ export function Home() {
     backendStatus,
     startNewChat,
     selectChat,
+    deleteChat,
     handleSendMessage
   } = useChat();
 
@@ -34,6 +35,7 @@ export function Home() {
       activeChatId={activeChatId}
       onSelectChat={selectChat}
       onNewChat={startNewChat}
+      onDeleteChat={deleteChat}
       activeExpert={activeExpert}
       onSelectExpert={selectExpert}
       activeProject={activeProject}

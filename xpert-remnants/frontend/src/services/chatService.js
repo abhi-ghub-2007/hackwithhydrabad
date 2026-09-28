@@ -141,16 +141,16 @@ export const chatService = {
   getStoredChats() {
     try {
       const raw = localStorage.getItem(CHATS_STORAGE_KEY);
-      if (raw) {
+      if (raw !== null) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           return parsed;
         }
       }
     } catch (e) {
       console.warn('Failed to parse stored chats, loading seeds:', e);
     }
-    // Initialize with seeds
+    // Initialize with seeds if never initialized before
     localStorage.setItem(CHATS_STORAGE_KEY, JSON.stringify(SEED_CHATS));
     return SEED_CHATS;
   },
@@ -161,6 +161,50 @@ export const chatService = {
     } catch (e) {
       console.warn('Failed to save chats to localStorage:', e);
     }
+  },
+
+  deleteChat(chatId) {
+    try {
+      const current = this.getStoredChats();
+      const updated = current.filter((c) => c.id !== chatId);
+      localStorage.setItem(CHATS_STORAGE_KEY, JSON.stringify(updated));
+      if (this.getActiveChatId() === chatId) {
+        this.setActiveChatId(null);
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('xpert_chats_updated', {
+            detail: { chats: updated, deletedChatId: chatId }
+          })
+        );
+      }
+      return updated;
+    } catch (e) {
+      console.warn('Failed to delete chat:', e);
+      return [];
+    }
+  },
+
+  subscribeToChats(callback) {
+    if (typeof window === 'undefined') return () => {};
+    const handleUpdate = (e) => {
+      if (e?.detail?.chats) {
+        callback(e.detail.chats);
+      } else {
+        callback(this.getStoredChats());
+      }
+    };
+    const handleStorage = (e) => {
+      if (e.key === CHATS_STORAGE_KEY) {
+        callback(this.getStoredChats());
+      }
+    };
+    window.addEventListener('xpert_chats_updated', handleUpdate);
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener('xpert_chats_updated', handleUpdate);
+      window.removeEventListener('storage', handleStorage);
+    };
   },
 
   getActiveChatId() {

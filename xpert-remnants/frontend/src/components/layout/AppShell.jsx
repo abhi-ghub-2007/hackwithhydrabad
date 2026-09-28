@@ -5,13 +5,15 @@ import { Sidebar } from './Sidebar';
 import { ExpertSelector } from './ExpertSelector';
 import { SettingsModal } from './SettingsModal';
 import { authService } from '../../services/authService';
+import { chatService } from '../../services/chatService';
 import './AppShell.css';
 
 export function AppShell({
-  chats = [],
-  activeChatId = null,
-  onSelectChat,
-  onNewChat,
+  chats: propChats,
+  activeChatId: propActiveChatId,
+  onSelectChat: propOnSelectChat,
+  onNewChat: propOnNewChat,
+  onDeleteChat: propOnDeleteChat,
   activeExpert,
   onSelectExpert,
   activeProject,
@@ -23,10 +25,23 @@ export function AppShell({
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [theme, setTheme] = useState(() => authService.initTheme());
+  const [storedChats, setStoredChats] = useState(() => chatService.getStoredChats());
 
   useEffect(() => {
     authService.initTheme();
   }, []);
+
+  // Synchronize stored chats when not provided via props (e.g. on secondary pages)
+  useEffect(() => {
+    if (propChats !== undefined) return;
+    const unsubscribe = chatService.subscribeToChats((updated) => {
+      setStoredChats(updated);
+    });
+    return unsubscribe;
+  }, [propChats]);
+
+  const effectiveChats = propChats !== undefined ? propChats : storedChats;
+  const effectiveActiveChatId = propActiveChatId !== undefined ? propActiveChatId : chatService.getActiveChatId();
 
   const handleToggleTheme = () => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
@@ -40,18 +55,40 @@ export function AppShell({
   };
 
   const handleNew = () => {
-    if (onNewChat) onNewChat();
+    if (propOnNewChat) {
+      propOnNewChat();
+    } else {
+      chatService.setActiveChatId(null);
+    }
     navigate('/');
+  };
+
+  const handleSelectChat = (chatId) => {
+    if (propOnSelectChat) {
+      propOnSelectChat(chatId);
+    } else {
+      chatService.setActiveChatId(chatId);
+      navigate(`/?chatId=${chatId}`);
+    }
+  };
+
+  const handleDeleteChat = (chatId) => {
+    if (propOnDeleteChat) {
+      propOnDeleteChat(chatId);
+    } else {
+      chatService.deleteChat(chatId);
+    }
   };
 
   return (
     <div className="app-shell">
       {/* Minimal Left Sidebar */}
       <Sidebar
-        chats={chats}
-        activeChatId={activeChatId}
-        onSelectChat={onSelectChat}
+        chats={effectiveChats}
+        activeChatId={effectiveActiveChatId}
+        onSelectChat={handleSelectChat}
         onNewChat={handleNew}
+        onDeleteChat={handleDeleteChat}
         isOpen={isMobileSidebarOpen}
         onClose={() => setIsMobileSidebarOpen(false)}
         onOpenSettings={() => setIsSettingsOpen(true)}

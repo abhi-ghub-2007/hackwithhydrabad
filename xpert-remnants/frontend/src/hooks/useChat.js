@@ -52,11 +52,13 @@ export function useChat() {
   const startNewChat = useCallback(() => {
     setActiveChatId(null);
     setMessages([]);
+    chatService.setActiveChatId(null);
     setIsMobileSidebarOpen(false);
   }, []);
 
   const selectChat = useCallback(async (chatId) => {
     setActiveChatId(chatId);
+    chatService.setActiveChatId(chatId);
     const selected = chats.find((c) => c.id === chatId);
     if (selected) {
       setMessages(selected.messages || []);
@@ -69,6 +71,43 @@ export function useChat() {
     }
     setIsMobileSidebarOpen(false);
   }, [chats]);
+
+  const deleteChat = useCallback((chatId) => {
+    const updated = chatService.deleteChat(chatId);
+    setChats(updated);
+    if (activeChatId === chatId) {
+      startNewChat();
+    }
+  }, [activeChatId, startNewChat]);
+
+  // Subscribe to global chat updates (e.g. from other pages or tabs)
+  useEffect(() => {
+    const unsubscribe = chatService.subscribeToChats((updated) => {
+      setChats(updated);
+      setActiveChatId((currActive) => {
+        if (currActive && !updated.some((c) => c.id === currActive)) {
+          setMessages([]);
+          chatService.setActiveChatId(null);
+          return null;
+        }
+        return currActive;
+      });
+    });
+    return unsubscribe;
+  }, []);
+
+  // Sync active chat from URL param or stored active ID on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlChatId = params.get('chatId');
+    const targetChatId = urlChatId || chatService.getActiveChatId();
+    if (targetChatId) {
+      const found = chats.find((c) => c.id === targetChatId);
+      if (found) {
+        selectChat(targetChatId);
+      }
+    }
+  }, []);
 
   const handleSendMessage = useCallback(async (text) => {
     if (!text || !text.trim() || isLoading) return;
@@ -190,6 +229,7 @@ export function useChat() {
     isMobileSidebarOpen,
     startNewChat,
     selectChat,
+    deleteChat,
     handleSendMessage,
     toggleMobileSidebar,
     closeMobileSidebar

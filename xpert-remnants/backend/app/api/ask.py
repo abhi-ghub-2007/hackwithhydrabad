@@ -227,13 +227,23 @@ async def ask_xpert_remnants(
     # ROUTE 5B: LIST EXPERTS
     # ---------------------------------------------------------
     if intent == QueryIntent.LIST_EXPERTS:
-        p_id = request.project_id or session.last_project_id
+        p_id = request.project_id
+        # Only fallback to session project if query isn't explicitly asking for all experts
+        if not p_id and "all" not in query.lower() and not intent_meta.get("all_experts"):
+            p_id = session.last_project_id
+
         prj = db.query(Project).filter(Project.id == p_id).first() if p_id else None
         active_only = intent_meta.get("active_only", False) or "active" in query.lower()
 
         q_exp = db.query(Expert)
         if p_id:
-            q_exp = q_exp.filter(Expert.project_id == p_id)
+            # If this project has experts, filter by it; otherwise show all experts with a helpful note
+            if db.query(Expert).filter(Expert.project_id == p_id).count() > 0:
+                q_exp = q_exp.filter(Expert.project_id == p_id)
+            else:
+                p_id = None
+                prj = None
+
         if active_only:
             q_exp = q_exp.filter(Expert.status == "ACTIVE")
 
@@ -244,7 +254,15 @@ async def ask_xpert_remnants(
         p_title = f" for {prj.name}" if prj else ""
         if not experts:
             if active_only:
-                ans_text = f"There are currently no active experts listed{p_title}. All preserved contributors are former employees."
+                # If active only was requested but all are former employees, show preserved experts with clarification
+                all_preserved = db.query(Expert).limit(20).all()
+                if all_preserved:
+                    ans_text = (
+                        f"There are currently no active experts listed{p_title}; all preserved contributors are former employees:\n" +
+                        "\n".join([f"• {e.person.full_name} - {e.role} ({e.status.replace('_', ' ')})" for e in all_preserved if e.person])
+                    )
+                else:
+                    ans_text = f"There are currently no active experts listed{p_title}. All preserved contributors are former employees."
             else:
                 ans_text = f"No experts found{p_title}."
         else:

@@ -1,5 +1,6 @@
-import React from 'react';
-import { Plus, MessageSquare, Settings, X, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, MessageSquare, Settings, X, Trash2 } from 'lucide-react';
+import { DeleteChatModal } from './DeleteChatModal';
 import './Sidebar.css';
 
 export function Sidebar({
@@ -7,10 +8,20 @@ export function Sidebar({
   activeChatId,
   onSelectChat,
   onNewChat,
+  onDeleteChat,
   isOpen,
   onClose,
   onOpenSettings
 }) {
+  const [chatToDelete, setChatToDelete] = useState(null);
+
+  const handleConfirmDelete = (chatId) => {
+    if (onDeleteChat) {
+      onDeleteChat(chatId);
+    }
+    setChatToDelete(null);
+  };
+
   return (
     <>
       {/* Mobile drawer backdrop */}
@@ -50,18 +61,36 @@ export function Sidebar({
             {chats.map((chat) => {
               const isActive = activeChatId === chat.id;
               return (
-                <button
+                <div
                   key={chat.id}
-                  onClick={() => {
-                    if (onSelectChat) onSelectChat(chat.id);
-                    if (onClose) onClose();
-                  }}
-                  className={`recent-chat-item ${isActive ? 'active' : ''}`}
-                  title={chat.title}
+                  className={`recent-chat-item-wrapper ${isActive ? 'active' : ''}`}
                 >
-                  <MessageSquare size={14} className="chat-item-icon" />
-                  <span className="chat-item-title">{chat.title}</span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onSelectChat) onSelectChat(chat.id);
+                      if (onClose) onClose();
+                    }}
+                    className="recent-chat-item-btn"
+                    title={chat.title}
+                  >
+                    <MessageSquare size={14} className="chat-item-icon" />
+                    <span className="chat-item-title">{chat.title}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="chat-item-delete-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setChatToDelete(chat);
+                    }}
+                    title="Delete chat"
+                    aria-label={`Delete chat ${chat.title}`}
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
               );
             })}
 
@@ -86,6 +115,14 @@ export function Sidebar({
           </button>
         </div>
       </aside>
+
+      {/* ChatGPT-style Delete Confirmation Modal */}
+      <DeleteChatModal
+        isOpen={Boolean(chatToDelete)}
+        chat={chatToDelete}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setChatToDelete(null)}
+      />
     </>
   );
 }
